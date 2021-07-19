@@ -1,2 +1,2 @@
-from bot import Bot
+from .bot import Bot
 __all__ = ["Bot"]

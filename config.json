@@ -1,16 +1,16 @@
 {
-	"token": "<put your token here>",
-	"admins": [],
-	"debuggers": [],
-	"channels_id": [],
+	"token": "812651592:AAFjYqukliODFlfdKFn_ksQpddqJRDLs3RY",
+	"admins": [343733912],
+	"debuggers": [343733912],
+	"channels_id": [-1001593977805],
 	"texts": {
-		"not-joined-yet": "",
-		"hello": "",
-		"get-quality": "",
-		"keyboard-main-learn": "",
-		"keyboard-main-about": "",
-		"user_message": "",
-		"no-link-here": "",
-		"uploading": ""
+		"not-joined-yet": "join to @pycdrexample first!",
+		"hello": "hello!",
+		"get-quality": "send quality:",
+		"keyboard-main-learn": "send link!",
+		"keyboard-main-about": "mmt",
+		"user_message": "oops! {user_msg}",
+		"no-link-here": "no link!",
+		"uploading": "uploading..."
 	}
 }
