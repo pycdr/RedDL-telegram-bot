@@ -1,0 +1,16 @@
+{
+	"token": "<put your token here>",
+	"admins": [],
+	"debuggers": [],
+	"channels_id": [],
+	"texts": {
+		"not-joined-yet": "",
+		"hello": "",
+		"get-quality": "",
+		"keyboard-main-learn": "",
+		"keyboard-main-about": "",
+		"user_message": "",
+		"no-link-here": "",
+		"uploading": ""
+	}
+}
