@@ -1,12 +1,19 @@
 from telebot.apihelper import ApiTelegramException
-from ..utube import get_qualities, download
+from ..utube import get_qualities, download, get_sizes, get_size
 from .keyboard import qualities_keyboard, main_keyboard
 from threading import Thread
+from os import remove
+import traceback
 
-__all__ = ["start", "get_link", "send_video", "get_resolution", "is_subscribed"]
+def sizeof_fmt(num, suffix='B'):
+    # https://stackoverflow.com/questions/1094841/get-human-readable-version-of-file-size
+    for unit in ['','Ki','Mi','Gi','Ti','Pi','Ei','Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)
 
 def start(message, bot, texts):
-	print("functions.py > start")
 	try:
 		bot.send_message(
 			message.chat.id,
@@ -18,8 +25,11 @@ def start(message, bot, texts):
 		return False, str(err), repr(err)
 
 def get_link(message, bot, text):
-	print("functions.py > get_link")
 	try:
+		bot.send_message(
+			message.chat.id,
+			"\n\n".join(f"{x}: {sizeof_fmt(y)}" for x,y in get_sizes(message.text).items())
+		)
 		bot.send_message(
 			message.chat.id,
 			text.format(url = message.text),
@@ -30,26 +40,29 @@ def get_link(message, bot, text):
 		return False, str(err), repr(err)
 
 def send_video(bot, url, chat_id, quality):
-	print("functions.py > send_video")
 	path = download(url, quality)
-	bot.send_video(chat_id, open(path, 'rb'))
+	print(bot.send_video(chat_id, open(path, 'rb')))
+	remove(path)
 
-def get_resolution(message, bot, text, url):
-	print("functions.py > get_resolution")
+def get_resolution(message, bot, text, url, max_size, size_err_text):
 	try:
+		if get_size(url, message.text) > max_size:
+			bot.send_message(message.chat.id, size_err_text)
+			return True, '', ''
 		bot.send_message(message.chat.id, text)
-		t = Thread(lambda:send_video(bot, url, message.chat.id, message.text))
+		t = Thread(target = lambda:send_video(bot, url, message.chat.id, message.text))
 		t.start()
 		return True, '', ''
 	except Exception as err:
-		return False, str(err), repr(err)
+		return False, str(err), traceback.format_exc()
 
 def is_subscribed(chat_id, user_id, bot):
-	print("functions.py > is_subscribed")
 	# from: https://stackoverflow.com/questions/64414486/how-to-check-if-a-user-is-subscribed-to-a-specific-telegram-channel-python-py
 	try:
-		bot.get_chat_member(chat_id, user_id)
-		return True
+		res = bot.get_chat_member(chat_id, user_id)
+		return True if res.status != 'left' else False
 	except ApiTelegramException as e:
 		if e.result_json['description'] == 'Bad Request: user not found':
 			return False
+		else:
+			raise e
