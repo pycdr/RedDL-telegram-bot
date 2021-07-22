@@ -65,6 +65,7 @@ class Bot:
 	def init(self):
 		@self.bot.message_handler(commands = ['start'])
 		def cmd_start(message):
+			if message.chat.type != "private": return
 			if not self.check_is_joined(message): return
 			successful, user_msg, debug_msg = start(message, self.bot, self.texts)
 			if not successful:
@@ -75,8 +76,9 @@ class Bot:
 			regexp = r'((http|https)://)?(www.)?(youtube.com|youtu.be)/(watch\?v=)?[a-zA-z0-9-_&=]+'
 		)
 		def cmd_get_link(message):
+			if message.chat.type != "private": return
 			if not self.check_is_joined(message): return
-			successful, user_msg, debug_msg = get_link(message, self.bot, self.texts["get-quality"])
+			successful, user_msg, debug_msg = get_link(message, self.bot, self.texts["get-quality"], self.texts["error429"])
 			if not successful:
 				self.catch_err(message, user_msg, debug_msg)
 			else:
@@ -84,6 +86,7 @@ class Bot:
 
 		@self.bot.message_handler(regexp = r'[0-9]{3,4}p')
 		def cmd_get_resolution(message):
+			if message.chat.type != "private": return
 			if message.from_user.id not in self.sent_link:
 				self.bot.reply_to(
 					message,
@@ -94,13 +97,15 @@ class Bot:
 				message, self.bot, self.texts["uploading"],
 				self.sent_link[message.from_user.id],
 				self.max_download_size,
-				self.texts["max_size_err"]
+				self.texts["max_size_err"],
+				self.texts["error429"]
 			)
 			if not successful:
 				self.catch_err(message, user_msg, debug_msg)
 
 		@self.bot.message_handler(func = lambda msg: msg.text in self.keyboard_commands.values())
 		def cmd_get_keyboard_text(message):
+			if message.chat.type != "private": return
 			self.bot.reply_to(
 				message,
 				self.keyboard_texts[message.text]

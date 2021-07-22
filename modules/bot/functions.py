@@ -17,14 +17,14 @@ def start(message, bot, texts):
 	try:
 		bot.send_message(
 			message.chat.id,
-			texts["hello"].format(name = message.from_user.first_name + " " + message.from_user.last_name or ''),
+			texts["hello"].format(name = (message.from_user.first_name or '') + " " + (message.from_user.last_name or '')),
 			reply_markup = main_keyboard(texts)
 		)
 		return True, '', ''
 	except Exception as err:
-		return False, str(err), repr(err)
+		return False, str(err), traceback.format_exc()
 
-def get_link(message, bot, text):
+def get_link(message, bot, text, err429_text):
 	try:
 		bot.send_message(
 			message.chat.id,
@@ -37,14 +37,16 @@ def get_link(message, bot, text):
 		)
 		return True, '', ''
 	except Exception as err:
-		return False, str(err), repr(err)
+		if getattr(err, 'code', None) == 429: err = err429_text
+		return False, str(err), traceback.format_exc()
 
 def send_video(bot, url, chat_id, quality):
 	path = download(url, quality)
-	print(bot.send_video(chat_id, open(path, 'rb')))
+	file_id = (bot.send_video(chat_id, open(path, 'rb'))).video.file_id
 	remove(path)
+	return file_id
 
-def get_resolution(message, bot, text, url, max_size, size_err_text):
+def get_resolution(message, bot, text, url, max_size, size_err_text, err429_text):
 	try:
 		if get_size(url, message.text) > max_size:
 			bot.send_message(message.chat.id, size_err_text)
@@ -54,6 +56,7 @@ def get_resolution(message, bot, text, url, max_size, size_err_text):
 		t.start()
 		return True, '', ''
 	except Exception as err:
+		if getattr(err, 'code', None) == 429: err = err429_text
 		return False, str(err), traceback.format_exc()
 
 def is_subscribed(chat_id, user_id, bot):
@@ -65,4 +68,5 @@ def is_subscribed(chat_id, user_id, bot):
 		if e.result_json['description'] == 'Bad Request: user not found':
 			return False
 		else:
+			print(traceback.format_exc())
 			raise e
